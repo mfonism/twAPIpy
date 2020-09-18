@@ -38,3 +38,25 @@ def fixture_mock_post_bearer_token_endpoint(
         },
         json={"token_type": "bearer", "access_token": f"{bearer_token}"},
     )
+
+
+@pytest.fixture(name="mock_json_from_api_get_endpoint")
+def fixture_mock_json_from_api_get_endpoint():
+    return {
+        "data": [
+            {"id": "123456789", "text": "Python 2 is dead, long live Python 3!"},
+            {"id": "543212345", "text": "Python rocks."},
+            {"id": "333666999", "text": "TIL python is not always a snake."},
+        ]
+    }
+
+
+@pytest.fixture(name="mock_api_get_endpoint")
+def fixture_mock_api_get_endpoint(
+    requests_mock, bearer_token, mock_json_from_api_get_endpoint
+):
+    requests_mock.get(
+        "https://api.twitter.com/2/tweets/search/recent?query=python&max_results=3",
+        request_headers={"Authorization": f"Bearer {bearer_token}"},
+        json=mock_json_from_api_get_endpoint,
+    )
