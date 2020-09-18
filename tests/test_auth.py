@@ -2,7 +2,7 @@ import requests
 
 import pytest
 
-from twapipy.bearer_auth import TwitterBasicAuth
+from twapipy.auth import TwitterBasicAuth
 
 
 @pytest.mark.usefixtures("mock_post_bearer_token_endpoint")

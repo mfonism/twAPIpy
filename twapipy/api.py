@@ -1,7 +1,7 @@
 import requests
 
 from .adapter import TwitterAdapter
-from .bearer_auth import TwitterBearerAuth
+from .auth import TwitterBearerAuth
 
 
 class TwitterOAuth2API:
