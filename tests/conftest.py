@@ -1,4 +1,5 @@
 import pytest
+from requests import Response
 
 
 @pytest.fixture(name="api_key")
@@ -30,6 +31,13 @@ def fixture_bearer_token():
 def fixture_mock_post_bearer_token_endpoint(
     requests_mock, basic_auth_string, bearer_token
 ):
+    def match_grant_type_in_payload(request):
+        if request.json().get("grant_type") == "client_credentials":
+            return True
+        resp = Response()
+        resp.status_code = 403
+        resp.raise_for_status()
+
     requests_mock.post(
         "https://api.twitter.com/oauth2/token",
         request_headers={
@@ -37,6 +45,7 @@ def fixture_mock_post_bearer_token_endpoint(
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
         json={"token_type": "bearer", "access_token": f"{bearer_token}"},
+        additional_matcher=match_grant_type_in_payload,
     )
 
 

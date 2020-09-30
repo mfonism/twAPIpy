@@ -37,7 +37,7 @@ class TwitterBearerAuth(TwitterAuthBase):
         try:
             response = requests.post(
                 self.auth_url,
-                data=self._post_data,
+                json=self._post_data,
                 auth=TwitterBasicAuth(self._api_key, self._api_key_secret),
             )
             return response.json()["access_token"]

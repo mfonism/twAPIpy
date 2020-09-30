@@ -9,7 +9,7 @@ from twapipy.auth import TwitterBasicAuth
 def test_basic_auth(api_key, api_key_secret, bearer_token):
     response = requests.post(
         "https://api.twitter.com/oauth2/token",
-        data={"grant_type": "client_credentials"},
+        json={"grant_type": "client_credentials"},
         auth=TwitterBasicAuth(api_key, api_key_secret),
     )
     assert response.json()["access_token"] == bearer_token
