@@ -1,5 +1,7 @@
+import json
+
 import pytest
-from requests import Response
+import requests
 
 
 @pytest.fixture(name="api_key")
@@ -29,24 +31,38 @@ def fixture_bearer_token():
 
 @pytest.fixture(name="mock_post_bearer_token_endpoint")
 def fixture_mock_post_bearer_token_endpoint(
-    requests_mock, basic_auth_string, bearer_token
+    requests_mock, basic_auth_string, bearer_token, forbidden_response
 ):
-    def match_grant_type_in_payload(request):
-        if request.json().get("grant_type") == "client_credentials":
-            return True
-        resp = Response()
-        resp.status_code = 403
-        resp.raise_for_status()
+    def matcher(req):
+        if req.path != "/oauth2/token":
+            return None
+        if req.headers.get("Authorization") != f"Basic {basic_auth_string}":
+            return forbidden_response
+        if (
+            req.headers.get("Content-Type")
+            != "application/x-www-form-urlencoded;charset=UTF-8"
+        ):
+            return forbidden_response
+        if req.json().get("grant_type") != "client_credentials":
+            return forbidden_response
 
-    requests_mock.post(
-        "https://api.twitter.com/oauth2/token",
-        request_headers={
-            "Authorization": f"Basic {basic_auth_string}",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        json={"token_type": "bearer", "access_token": f"{bearer_token}"},
-        additional_matcher=match_grant_type_in_payload,
-    )
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {"token_type": "bearer", "access_token": f"{bearer_token}"}
+        ).encode()
+        resp.status_code = 200
+
+        return resp
+
+    requests_mock._adapter.add_matcher(matcher)
+    yield
+
+
+@pytest.fixture(name="forbidden_response")
+def fixture_forbidden_response():
+    resp = requests.Response()
+    resp.status_code = 403
+    return resp
 
 
 @pytest.fixture(name="mock_json_from_api_get_endpoint")
